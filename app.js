@@ -1,4 +1,4 @@
-g/* ============ DATA LAYER ============ */
+/* ============ DATA LAYER ============ */
 const KEY = "gmis_data_v1";
 const SESSION = "gmis_session_v1";
 const NOTICE_KEY = "gmis_notice_v1";
