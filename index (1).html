@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GMIS — Gym Management System</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginView" class="login-wrap">
+  <div class="login">
+    <h2>GMIS</h2>
+    <p>Gym Management Information System</p>
+    <div class="field"><label>Username</label><input id="loginUser" placeholder="username"/></div>
+    <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="password"/></div>
+    <button class="primary" style="width:100%" onclick="login()">Sign in</button>
+    <div class="hint">
+      <b>Demo accounts:</b><br>
+      Admin → micky / micky123<br>
+      Trainer → john / trainer123<br>
+      Member → alice / member123
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appView" style="display:none">
+  <header>
+    <h1>GMIS<span>.</span></h1>
+    <div>
+      <span class="who">Signed in as <b id="whoName"></b> (<span id="whoRole"></span>)</span>
+      <button onclick="logout()" style="margin-left:12px">Logout</button>
+    </div>
+  </header>
+  <div class="container">
+    <div class="tabs" id="tabs"></div>
+
+    <!-- Dashboard -->
+    <div id="panel-dashboard" class="panel">
+      <div class="stats">
+        <div class="stat"><div class="v" id="sMembers">0</div><div class="l">Members</div></div>
+        <div class="stat"><div class="v" id="sTrainers">0</div><div class="l">Trainers</div></div>
+        <div class="stat"><div class="v" id="sToday">0</div><div class="l">Today's Check-ins</div></div>
+
+      </div>
+    </div>
+
+    <!-- Member Dashboard -->
+    <div id="panel-memberdashboard" class="panel">
+      <div id="memberDashboard"></div>
+    </div>
+
+    <!-- Member Package -->
+    <div id="panel-package" class="panel">
+      <div id="memberPackage"></div>
+    </div>
+
+    <!-- Members -->
+    <div id="panel-members" class="panel">
+      <div class="card" id="memberForm">
+        <h3>Register Member</h3>
+        <div class="grid">
+          <div><label>Full name</label><input id="mName" placeholder="Jane Doe"/></div>
+          <div><label>Phone</label><input id="mPhone" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="07xx..." oninput="enforcePhoneInput()"/></div>
+          <div><label>Age</label><input id="mAge" type="number" min="1" step="1" placeholder="25" oninput="enforceAgeInput()"/></div>
+          <div><label>Gender</label><select id="mGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div><label>Plan</label><select id="mPlan" onchange="syncRegistrationFee()"><option>Basic</option><option>Standard</option><option>Premium</option></select></div>
+          <div><label>Registration Fee (KSh)</label><input id="mRegFee" type="number" readonly value="10000"/></div>
+          <div><label>Assign Trainer</label><select id="mTrainer"></select></div>
+          <div><label>Username</label><input id="mUser" placeholder="login username"/></div>
+          <div><label>Password</label><input id="mPass" placeholder="login password"/></div>
+        </div>
+        <button class="primary" onclick="addMember()">Add Member</button>
+      </div>
+      <div class="card">
+        <h3>Members</h3>
+        <table><thead><tr><th>Name</th><th>Phone</th><th>Plan</th><th>Trainer</th><th>Joined</th><th></th></tr></thead>
+        <tbody id="tMembers"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Trainers -->
+    <div id="panel-trainers" class="panel">
+      <div class="card" id="trainerForm">
+        <h3>Add Trainer</h3>
+        <div class="grid">
+          <div><label>Name</label><input id="tName" placeholder="John Smith"/></div>
+          <div><label>Phone</label><input id="tPhone" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="07xx..." oninput="enforcePhoneInput()"/></div>
+          <div><label>Specialty</label><input id="tSpec" placeholder="Strength training"/></div>
+          <div><label>Username</label><input id="tUser" type="text" maxlength="30" pattern="[A-Za-z]*" placeholder="login username" oninput="enforceUsernameInput()"/></div>
+          <div><label>Password</label><input id="tPass" placeholder="login password"/></div>
+        </div>
+        <button class="primary" onclick="addTrainer()">Add Trainer</button>
+      </div>
+      <div class="card">
+        <h3>Trainers</h3>
+        <table><thead><tr><th>Name</th><th>Phone</th><th>Specialty</th><th>Members</th><th id="thTrainerAct"></th></tr></thead>
+        <tbody id="tTrainers"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Attendance -->
+    <div id="panel-attendance" class="panel">
+      <div class="card" id="attForm">
+        <h3>Record Attendance</h3>
+        <div class="grid">
+          <div><label>Member</label><select id="aMember"></select></div>
+          <div><label>Date</label><input id="aDate" type="date" /></div>
+          <div><label>Time In</label><input id="aTimeIn" type="time" /></div>
+          <div><label>Time Out</label><input id="aTimeOut" type="time" /></div>
+        </div>
+        <button class="primary" onclick="addAttendance()">Save Attendance</button>
+      </div>
+      <div class="card">
+        <h3>Attendance Report</h3>
+        <div class="row" style="margin-bottom:14px">
+          <div><label>From</label><input id="rFrom" type="date"/></div>
+          <div><label>To</label><input id="rTo" type="date"/></div>
+          <button onclick="renderAttendance()">Filter</button>
+          <button onclick="clearAttFilter()">Clear</button>
+        </div>
+        <div id="reportSummary" style="margin-bottom:10px;color:var(--muted);font-size:13px"></div>
+        <table><thead><tr><th>Date</th><th>Time In</th><th>Time Out</th><th>Member</th><th></th></tr></thead>
+        <tbody id="tAttendance"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Payments -->
+    <div id="panel-payments" class="panel">
+      <div class="card" id="payForm">
+        <h3>Record Payment (KSh)</h3>
+        <div class="grid">
+          <div><label>Member</label><select id="pMember" onchange="syncPaymentAmount()"></select></div>
+          <div><label>Amount (KSh)</label><input id="pAmount" type="number" placeholder="2000" readonly/></div>
+          <div><label>Method</label><select id="pMethod"><option>Cash</option></select></div>
+          <div><label>Package Type</label><select id="pPackage"><option value="">— none —</option><option>Basic</option><option>Standard</option><option>Premium</option></select></div>
+        </div>
+        <button class="primary" onclick="addPayment()">Record</button>
+      </div>
+      <div class="card">
+        <h3>Payments</h3>
+        <table><thead><tr><th>Date</th><th>Member</th><th>Package</th><th>Method</th><th>Amount</th><th></th></tr></thead>
+        <tbody id="tPayments"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Account (all roles) -->
+    <div id="panel-account" class="panel">
+      <div class="card">
+        <h3>Change My Username</h3>
+        <div class="grid">
+          <div><label>New Username</label><input id="newUser" type="text" maxlength="30" pattern="[A-Za-z]*" oninput="enforceUsernameInput()"/></div>
+        </div>
+        <button class="primary" onclick="changeOwnUser()">Update Username</button>
+      </div>
+      <div class="card">
+        <h3>Change My Password</h3>
+        <div class="grid">
+          <div><label>Current Password</label><input id="curPass" type="password"/></div>
+          <div><label>New Password</label><input id="newPass" type="password"/></div>
+        </div>
+        <button class="primary" onclick="changeOwnPass()">Update Password</button>
+      </div>
+    </div>
+
+    <!-- My Profile (member view) -->
+    <div id="panel-myprofile" class="panel">
+      <div class="card"><h3>My Profile</h3><div id="myProfile"></div></div>
+      <div class="card"><h3>My Attendance</h3><table><thead><tr><th>Date</th><th>Time In</th><th>Time Out</th></tr></thead><tbody id="myAtt"></tbody></table></div>
+      <div class="card"><h3>My Payments</h3><table><thead><tr><th>Date</th><th>Method</th><th>Amount</th></tr></thead><tbody id="myPay"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</html>
